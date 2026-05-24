@@ -46,7 +46,8 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
     os.makedirs("downloads", exist_ok=True)
 
     ydl_opts = {
-        "format": "140/251/250/bestaudio",
+        "format": "bestaudio/best",
+"extract_flat": False,
         "outtmpl": "downloads/%(id)s.%(ext)s",
         "quiet": True,
         "noplaylist": True,
