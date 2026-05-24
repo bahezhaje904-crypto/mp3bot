@@ -41,18 +41,18 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     os.makedirs("downloads", exist_ok=True)
 
-    ydl_opts = {
-        "format": "bestaudio/best",
-        "outtmpl": "downloads/%(id)s.%(ext)s",
-        "quiet": True,
-        "noplaylist": True,
-        "cookiefile": "cookies.txt",
-        "postprocessors": [{
-            "key": "FFmpegExtractAudio",
-            "preferredcodec": "mp3",
-            "preferredquality": "192",
-        }],
-    }
+ydl_opts = {
+    "format": "ba/b",
+    "outtmpl": "downloads/%(id)s.%(ext)s",
+    "quiet": True,
+    "noplaylist": True,
+    "cookiefile": "cookies.txt",
+    "postprocessors": [{
+        "key": "FFmpegExtractAudio",
+        "preferredcodec": "mp3",
+        "preferredquality": "192",
+    }],
+}
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
