@@ -14,6 +14,12 @@ from telegram.ext import (
 
 TOKEN = os.getenv("TOKEN")
 
+COOKIES = os.getenv("COOKIES_TXT")
+
+if COOKIES:
+    with open("cookies.txt", "w", encoding="utf-8") as f:
+        f.write(COOKIES)
+
 def extract_url(text):
     match = re.search(r'https?://\S+', text)
     return match.group(0) if match else None
@@ -35,17 +41,18 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     os.makedirs("downloads", exist_ok=True)
 
-    ydl_opts = {
-        "format": "bestaudio/best",
-        "outtmpl": "downloads/%(id)s.%(ext)s",
-        "quiet": True,
-        "noplaylist": True,
-        "postprocessors": [{
-            "key": "FFmpegExtractAudio",
-            "preferredcodec": "mp3",
-            "preferredquality": "192",
-        }],
-    }
+  ydl_opts = {
+    "format": "bestaudio/best",
+    "outtmpl": "downloads/%(id)s.%(ext)s",
+    "quiet": True,
+    "noplaylist": True,
+    "cookiefile": "cookies.txt",
+    "postprocessors": [{
+        "key": "FFmpegExtractAudio",
+        "preferredcodec": "mp3",
+        "preferredquality": "192",
+    }],
+}
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
