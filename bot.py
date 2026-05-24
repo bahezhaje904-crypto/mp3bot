@@ -20,14 +20,17 @@ if COOKIES:
     with open("cookies.txt", "w", encoding="utf-8") as f:
         f.write(COOKIES)
 
+
 def extract_url(text):
     match = re.search(r'https?://\S+', text)
     return match.group(0) if match else None
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Send YouTube / TikTok / Instagram link 🎵"
     )
+
 
 async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
@@ -41,18 +44,18 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     os.makedirs("downloads", exist_ok=True)
 
-ydl_opts = {
-    "format": "ba/b",
-    "outtmpl": "downloads/%(id)s.%(ext)s",
-    "quiet": True,
-    "noplaylist": True,
-    "cookiefile": "cookies.txt",
-    "postprocessors": [{
-        "key": "FFmpegExtractAudio",
-        "preferredcodec": "mp3",
-        "preferredquality": "192",
-    }],
-}
+    ydl_opts = {
+        "format": "ba/b",
+        "outtmpl": "downloads/%(id)s.%(ext)s",
+        "quiet": True,
+        "noplaylist": True,
+        "cookiefile": "cookies.txt",
+        "postprocessors": [{
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+            "preferredquality": "192",
+        }],
+    }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -79,6 +82,7 @@ ydl_opts = {
 
     except Exception as e:
         await update.message.reply_text(f"Error:\n{e}")
+
 
 app = ApplicationBuilder().token(TOKEN).build()
 
