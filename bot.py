@@ -45,24 +45,24 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     os.makedirs("downloads", exist_ok=True)
 
-   ydl_opts = {
-    "format": "140/251/250/bestaudio",
-    "outtmpl": "downloads/%(id)s.%(ext)s",
-    "quiet": True,
-    "noplaylist": True,
-    "cookiefile": "cookies.txt" if os.path.exists("cookies.txt") else None,
-    "ffmpeg_location": imageio_ffmpeg.get_ffmpeg_exe(),
-    "extractor_args": {
-        "youtube": {
-            "player_client": ["android"]
-        }
-    },
-    "postprocessors": [{
-        "key": "FFmpegExtractAudio",
-        "preferredcodec": "mp3",
-        "preferredquality": "192",
-    }],
-}
+    ydl_opts = {
+        "format": "140/251/250/bestaudio",
+        "outtmpl": "downloads/%(id)s.%(ext)s",
+        "quiet": True,
+        "noplaylist": True,
+        "cookiefile": "cookies.txt" if os.path.exists("cookies.txt") else None,
+        "ffmpeg_location": imageio_ffmpeg.get_ffmpeg_exe(),
+        "extractor_args": {
+            "youtube": {
+                "player_client": ["android"]
+            }
+        },
+        "postprocessors": [{
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+            "preferredquality": "192",
+        }],
+    }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
