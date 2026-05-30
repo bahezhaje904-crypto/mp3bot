@@ -1,36 +1,46 @@
+import glob
+import logging
 import os
 import re
-import glob
-import yt_dlp
-import imageio_ffmpeg
 
+import imageio_ffmpeg
+import yt_dlp
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
+    ContextTypes,
     MessageHandler,
     filters,
-    ContextTypes,
 )
 
-TOKEN = os.getenv("TOKEN")
 
+logging.basicConfig(
+    format="%(asctime)s %(name)s %(levelname)s: %(message)s",
+    level=logging.INFO,
+)
+logger = logging.getLogger(__name__)
+
+TOKEN = os.getenv("TOKEN")
 COOKIES = os.getenv("COOKIES_TXT")
+
+if not TOKEN:
+    raise RuntimeError(
+        "Missing TOKEN environment variable. Add your Telegram bot token in Railway Variables."
+    )
 
 if COOKIES:
     with open("cookies.txt", "w", encoding="utf-8") as f:
-        f.write(COOKIES)
+        f.write(COOKIES.replace("\\n", "\n"))
 
 
 def extract_url(text):
-    match = re.search(r'https?://\S+', text)
+    match = re.search(r"https?://\S+", text or "")
     return match.group(0) if match else None
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Send YouTube / TikTok / Instagram link 🎵"
-    )
+    await update.message.reply_text("Send YouTube / TikTok / Instagram link")
 
 
 async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -42,27 +52,29 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     msg = await update.message.reply_text("Downloading...")
-
     os.makedirs("downloads", exist_ok=True)
 
     ydl_opts = {
         "format": "bestaudio/best",
-"extract_flat": False,
+        "extract_flat": False,
         "outtmpl": "downloads/%(id)s.%(ext)s",
         "quiet": True,
+        "no_warnings": True,
         "noplaylist": True,
         "cookiefile": "cookies.txt" if os.path.exists("cookies.txt") else None,
         "ffmpeg_location": imageio_ffmpeg.get_ffmpeg_exe(),
         "extractor_args": {
             "youtube": {
-                "player_client": ["android"]
-            }
+                "player_client": ["android"],
+            },
         },
-        "postprocessors": [{
-            "key": "FFmpegExtractAudio",
-            "preferredcodec": "mp3",
-            "preferredquality": "192",
-        }],
+        "postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192",
+            }
+        ],
     }
 
     try:
@@ -81,15 +93,22 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with open(mp3_path, "rb") as audio:
             await update.message.reply_audio(
                 audio=audio,
-                title=info.get("title", "music")
+                title=info.get("title", "music"),
             )
-
-        os.remove(mp3_path)
 
         await msg.delete()
 
     except Exception as e:
+        logger.exception("Download failed")
+        await msg.delete()
         await update.message.reply_text(f"Error:\n{e}")
+
+    finally:
+        for leftover in glob.glob("downloads/*"):
+            try:
+                os.remove(leftover)
+            except OSError:
+                logger.warning("Could not remove leftover file: %s", leftover)
 
 
 app = ApplicationBuilder().token(TOKEN).build()
